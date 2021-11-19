@@ -4,9 +4,10 @@ import datetime
 
 # Converts the unix time from the createTime attribute
 def unix_time_to_datetime(unix_time):
-    # uses the datetime library to convert unix time to datetime standard, the splits the result
+    # uses the datetime library to convert unix time to datetime standard
+    # puts the time in isoformat (ex. 2021-10-19T21:55:23) then splits in on the 'T'
     # ex. 1634694923 -> ['2021-10-19', '21:55:23']
-    return datetime.datetime.fromtimestamp(unix_time).strftime('%Y-%m-%d %H:%M:%S').split(' ')
+    return datetime.datetime.fromtimestamp(unix_time).isoformat().split('T')
 
 
 def extract_data_into_csv(input_filename, output_filename):
