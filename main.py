@@ -10,8 +10,9 @@ def unix_time_to_datetime(unix_time):
 
 
 def extract_data_into_csv(input_filename, output_filename):
-    # opens the csv file and writes the first line for the column names
+    # opens the csv file
     write_file = open(output_filename, 'w')
+    # establishes the first line in the csv as the column names (changes the createTime column to date and time)
     write_file.write('id,text,date,time,authorId,authorName,verified,signature,fans,musicId,musicName,'
                      'musicAuthor,musicOriginal,musicAlbum,videoMetaDuration,diggCount,shareCount,playCount,'
                      'commentCount\n')
