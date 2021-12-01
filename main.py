@@ -1,4 +1,5 @@
 import json
+import os
 import datetime
 
 
@@ -10,9 +11,10 @@ def unix_time_to_datetime(unix_time):
     return datetime.datetime.fromtimestamp(unix_time).isoformat().split('T')
 
 
-def extract_data_into_csv(input_filename, output_filename):
-    # opens the csv file
-    write_file = open(output_filename, 'w')
+# extracts the tiktok data and inserts it into the csv cleanly
+def extract_data_into_csv(input_filename, output_filename, ids):
+    # opens the csv file in append mode
+    write_file = open(output_filename, 'a')
     # establishes the first line in the csv as the column names (changes the createTime column to date and time)
     write_file.write('id,text,date,time,authorId,authorName,verified,signature,fans,musicId,musicName,'
                      'musicAuthor,musicOriginal,musicAlbum,videoMetaDuration,diggCount,shareCount,playCount,'
@@ -21,36 +23,33 @@ def extract_data_into_csv(input_filename, output_filename):
     with open(input_filename) as f:
         data = json.load(f)
         for tiktok in data:
-            # for id:7017249610901064965 there is no musicAuthor or musicAlbum attribute for some reason
-            if "musicAuthor" not in tiktok['musicMeta'] and "musicAlbum" not in tiktok['musicMeta']:
-                write_file.write(str(tiktok['id']) + ',' + str(tiktok['text']) + ',' +
-                    # calls the unix_time_to_datetime function to convert the createTime attribute to datetime and split the result
-                    unix_time_to_datetime(tiktok['createTime'])[0] + ',' + unix_time_to_datetime(tiktok['createTime'])[1] + ',' +
-                    str(tiktok['authorMeta']['id']) + ',' + tiktok['authorMeta']['name'] + ',' +
-                    str(tiktok['authorMeta']['verified']) + ',' + tiktok['authorMeta']['signature'].replace('\n', ' ') + ',' +
-                    str(tiktok['authorMeta']['fans']) + ',' + str(tiktok['musicMeta']['musicId']) + ',' +
-                    tiktok['musicMeta']['musicName'] + ',' + ',' + # replaces the musicAuthor with an empty string
-                    str(tiktok['musicMeta']['musicOriginal']) + ',' + ',' + # replaces the musicAlbum with an empty string
-                    str(tiktok['videoMeta']['duration']) + ',' + str(tiktok['diggCount']) + ',' +
-                    str(tiktok['shareCount']) + ', ' + str(tiktok['playCount']) + ',' + str(tiktok['commentCount']) + '\n')
-            else:
-                write_file.write(str(tiktok['id']) + ',' + str(tiktok['text']) + ',' +
-                    # calls the unix_time_to_datetime function to convert the createTime attribute to datetime and split the result
-                    unix_time_to_datetime(tiktok['createTime'])[0] + ',' + unix_time_to_datetime(tiktok['createTime'])[1] + ',' +
-                    str(tiktok['authorMeta']['id']) + ',' + tiktok['authorMeta']['name'] + ',' +
-                    str(tiktok['authorMeta']['verified']) + ',' + tiktok['authorMeta']['signature'].replace('\n', ' ') + ',' +
-                    str(tiktok['authorMeta']['fans']) + ',' + str(tiktok['musicMeta']['musicId']) + ',' +
-                    tiktok['musicMeta']['musicName'] + ',' + tiktok['musicMeta']['musicAuthor'] + ',' +
-                    str(tiktok['musicMeta']['musicOriginal']) + ',' + tiktok['musicMeta']['musicAlbum'] + ',' +
-                    str(tiktok['videoMeta']['duration']) + ',' + str(tiktok['diggCount']) + ',' +
-                    str(tiktok['shareCount']) + ',' + str(tiktok['playCount']) + ',' + str(tiktok['commentCount']) + '\n')
+            # checks to see if the tiktok is already in the ids set (i.e. the tiktok is already in the csv)
+            if tiktok['id'] not in ids:
+                # there is no musicAuthor or musicAlbum attribute so I call an exception for those with missing attributes
+                try:
+                    write_file.write(str(tiktok['id']) + ',' + str(tiktok['text']) + ',' +
+                        # calls the unix_time_to_datetime function to convert the createTime attribute to datetime and split the result
+                        unix_time_to_datetime(tiktok['createTime'])[0] + ',' + unix_time_to_datetime(tiktok['createTime'])[1] + ',' +
+                        str(tiktok['authorMeta']['id']) + ',' + tiktok['authorMeta']['name'] + ',' +
+                        str(tiktok['authorMeta']['verified']) + ',' + tiktok['authorMeta']['signature'].replace('\n', ' ') + ',' +
+                        str(tiktok['authorMeta']['fans']) + ',' + str(tiktok['musicMeta']['musicId']) + ',' +
+                        tiktok['musicMeta']['musicName'] + ',' + tiktok['musicMeta']['musicAuthor'] + ',' +
+                        str(tiktok['musicMeta']['musicOriginal']) + ',' + tiktok['musicMeta']['musicAlbum'] + ',' +
+                        str(tiktok['videoMeta']['duration']) + ',' + str(tiktok['diggCount']) + ',' +
+                        str(tiktok['shareCount']) + ',' + str(tiktok['playCount']) + ',' + str(tiktok['commentCount']) + '\n')
+                    ids.add(tiktok['id'])
+                except:
+                    pass
 
 
 def go():
-    input_filename = 'tiktoks10000.json'
+    # a set of all the ids in the csv so there's no duplicates
+    ids = set()
     output_filename = 'tiktoks.csv'
-
-    extract_data_into_csv(input_filename, output_filename)
+    # walks through all the files in the TikToks directory and extracts all the data
+    for root, dirs, files in os.walk('TikToks'):
+        for name in files:
+            extract_data_into_csv(os.path.join(root, name), output_filename, ids)
 
 
 if __name__ == '__main__':
