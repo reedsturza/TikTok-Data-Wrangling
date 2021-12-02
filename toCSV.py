@@ -24,7 +24,7 @@ def extract_data_into_csv(input_filename, output_filename, ids):
                 try:
                     write_file.write(str(tiktok['id']) + ',' + str(tiktok['text']) + ',' +
                         # calls the unix_time_to_datetime function to convert the createTime attribute to datetime and split the result
-                        unix_time_to_datetime(tiktok['createTime']) + ',' +str(tiktok['authorMeta']['id']) + ',' +
+                        unix_time_to_datetime(tiktok['createTime']) + ',' + str(tiktok['authorMeta']['id']) + ',' +
                         tiktok['authorMeta']['name'] + ',' + str(tiktok['authorMeta']['verified']) + ',' +
                         tiktok['authorMeta']['signature'].replace('\n', ' ') + ',' +
                         str(tiktok['authorMeta']['fans']) + ',' + str(tiktok['musicMeta']['musicId']) + ',' +
@@ -46,7 +46,7 @@ def go():
     # opens the csv file in append mode
     write_file = open(output_filename, 'w')
     # establishes the first line in the csv as the column names (changes the createTime column to date and time)
-    write_file.write('id,text,datetime,authorId,authorName,verified,signature,fans,musicId,musicName,'
+    write_file.write('id,text,createTime,authorId,authorName,verified,signature,fans,musicId,musicName,'
                      'musicAuthor,musicOriginal,musicAlbum,videoMetaDuration,diggCount,shareCount,playCount,'
                      'commentCount\n')
     write_file.close()
