@@ -33,7 +33,8 @@ def extract_data_into_csv(input_filename, output_filename, ids):
                         str(tiktok['videoMeta']['duration']) + ',' + str(tiktok['diggCount']) + ',' +
                         str(tiktok['shareCount']) + ',' + str(tiktok['playCount']) + ',' + str(tiktok['commentCount']) + '\n')
                     ids.add(tiktok['id'])
-                except:
+                # keyError is for when one of the fields doesn't exist for a tiktok in the json
+                except KeyError:
                     pass
     f.close()
     write_file.close()

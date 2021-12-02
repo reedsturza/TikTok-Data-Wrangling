@@ -74,15 +74,63 @@ def musicIDNotEmpty(musicID):
         return musicID
 
 
-# converts the boolean values to either 1 or 0
-def boolToBit(bool):
-    if bool:
-        return 'TRUE'
-    else:
-        return 'FALSE'
+# inserts the data into the TikTok table
+def tiktokTable(tiktok, cursor):
+    input = ''
+    input += '"' + tiktok['id'] + '", "' + tiktok['authorMeta']['id'] + '", "' + \
+             musicIDNotEmpty(tiktok['musicMeta']['musicId']) + '", "' + str(
+        unix_time_to_datetime(tiktok['createTime'])[0]) + \
+             '", "' + str(unix_time_to_datetime(tiktok['createTime'])[1]) + '", "' + \
+             remove_emoji(tiktok['text']).replace('\"', "'") + '", "' + str(tiktok['videoMeta']['duration']) + '"'
+    sql = 'INSERT INTO TikTok VALUES (' + input + ');'
+    cursor.execute(sql)
 
 
-def insertData(cursor, input_file , ids):
+# inserts the data into the author table
+def authorTable(tiktok, authors, cursor):
+    if tiktok['authorMeta']['id'] not in authors:
+        input = ''
+        input += '"' + tiktok['authorMeta']['id'] + '", "' + tiktok['authorMeta']['name'] + '", ' + \
+                 str(tiktok['authorMeta']['verified']) + ', "' + \
+                 remove_emoji(tiktok['authorMeta']['signature'].replace('\n', ' ')).replace('\"', "'") + \
+                 '", "' + str(tiktok['authorMeta']['fans']) + '"'
+        sql = 'INSERT INTO Author VALUES (' + input + ');'
+        cursor.execute(sql)
+        authors.add(tiktok['authorMeta']['id'])
+
+
+# inserts the data into the music table
+def musicTable(tiktok, sounds, cursor):
+    # some of the sounds don't have musicAlbum or musicAuthor
+    try:
+        # uses the sounds set to get rid of duplicates
+        if tiktok['musicMeta']['musicId'] not in sounds:
+            input = ''
+            input += '"' + tiktok['musicMeta']['musicId'] + '", "' + \
+                     remove_emoji(tiktok['musicMeta']['musicName']).replace('\"', "'") + \
+                     '", "' + remove_emoji(tiktok['musicMeta']['musicAuthor']).replace('\"', "'") + \
+                     '", ' + str(tiktok['musicMeta']['musicOriginal']) + \
+                     ', "' + remove_emoji(tiktok['musicMeta']['musicAlbum']).replace('\"', "'") + '"'
+            sql = 'INSERT INTO Music VALUES (' + input + ');'
+            cursor.execute(sql)
+            sounds.add(tiktok['musicMeta']['musicId'])
+    # keyError is for when one of the fields doesn't exist for a tiktok in the json
+    except KeyError:
+        pass
+
+
+# inserts the data into the tiktok_stats table
+def tiktokStatsTable(tiktok, cursor):
+    input = ''
+    input += '"' + tiktok['id'] + '", "' + str(tiktok['diggCount']) + '", "' + \
+             str(tiktok['shareCount']) + '", "' + str(tiktok['playCount']) + '", "' + \
+             str(tiktok['commentCount']) + '"'
+    sql = 'INSERT INTO Tiktok_Stats VALUES (' + input + ');'
+    cursor.execute(sql)
+
+
+# inserts the data into the individual tables
+def insertData(cursor, input_file, ids):
     # sets the make sure there's no duplicate primary keys in the tables
     authors = set()
     sounds = set()
@@ -93,51 +141,18 @@ def insertData(cursor, input_file , ids):
             # checks to see if the tiktok is already in the ids set (i.e. the tiktok is already in the csv)
             if tiktok['id'] not in ids:
                 # inserts the data into the TikTok table
-                input = ''
-                input += '"' + tiktok['id'] + '", "' + tiktok['authorMeta']['id'] + '", "' + \
-                            musicIDNotEmpty(tiktok['musicMeta']['musicId']) + '", "' + str(unix_time_to_datetime(tiktok['createTime'])[0]) + \
-                            '", "' + str(unix_time_to_datetime(tiktok['createTime'])[1]) + '", "' + \
-                            remove_emoji(tiktok['text']).replace('\"', "'") + '", "' + str(tiktok['videoMeta']['duration']) + '"'
-                sql = 'INSERT INTO TikTok VALUES (' + input + ');'
-                cursor.execute(sql)
+                tiktokTable(tiktok, cursor)
 
                 # insert the data into the author table
                 # uses the authors set to get rid of duplicate authors
-                if tiktok['authorMeta']['id'] not in authors:
-                    input = ''
-                    input += '"' + tiktok['authorMeta']['id'] + '", "' + tiktok['authorMeta']['name'] + '", ' + \
-                                str(tiktok['authorMeta']['verified']) + ', "' + \
-                                remove_emoji(tiktok['authorMeta']['signature'].replace('\n', ' ')).replace('\"',"'") + \
-                                '", "' + str(tiktok['authorMeta']['fans']) + '"'
-                    sql = 'INSERT INTO Author VALUES (' + input + ');'
-                    cursor.execute(sql)
-                    authors.add(tiktok['authorMeta']['id'])
+                authorTable(tiktok, authors, cursor)
 
                 # insert the data into the music table
-                # some of the sounds don't have musicAlbum or musicAuthor
-                try:
-                    # uses the sounds set to get rid of duplicates
-                    if tiktok['musicMeta']['musicId'] not in sounds:
-                        input = ''
-                        input += '"' + tiktok['musicMeta']['musicId'] + '", "' + \
-                                 remove_emoji(tiktok['musicMeta']['musicName']).replace('\"',"'") + \
-                                 '", "' + remove_emoji(tiktok['musicMeta']['musicAuthor']).replace('\"',"'") + \
-                                 '", ' + str(tiktok['musicMeta']['musicOriginal']) + \
-                                 ', "' + remove_emoji(tiktok['musicMeta']['musicAlbum']).replace('\"',"'") + '"'
-                        sql = 'INSERT INTO Music VALUES (' + input + ');'
-                        cursor.execute(sql)
-                        sounds.add(tiktok['musicMeta']['musicId'])
-                except KeyError:
-                    pass
+                musicTable(tiktok, sounds, cursor)
 
                 # insert data into the tiktok stats data
                 # the primary key is tiktokID so there's already duplication validation
-                input = ''
-                input += '"' + tiktok['id'] + '", "' + str(tiktok['diggCount']) + '", "' + \
-                         str(tiktok['shareCount']) + '", "' + str(tiktok['playCount']) + '", "' + \
-                         str(tiktok['commentCount']) + '"'
-                sql = 'INSERT INTO Tiktok_Stats VALUES (' + input + ');'
-                cursor.execute(sql)
+                tiktokStatsTable(tiktok, cursor)
 
 
 
