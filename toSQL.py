@@ -78,7 +78,8 @@ def music_id_not_empty(musicID):
 # inserts the data into the TikTok table
 def tiktok_table(tiktok, cursor):
     values = '"' + tiktok['id'] + '", "' + tiktok['authorMeta']['id'] + '", "' + \
-             music_id_not_empty(tiktok['musicMeta']['musicId']) + '", "' + str(unix_time_to_datetime(tiktok['createTime'])[0]) + \
+             music_id_not_empty(tiktok['musicMeta']['musicId']) + '", "' + \
+             str(unix_time_to_datetime(tiktok['createTime'])[0]) + \
              '", "' + str(unix_time_to_datetime(tiktok['createTime'])[1]) + '", "' + \
              remove_emoji(tiktok['text']).replace('\"', "'") + '", "' + str(tiktok['videoMeta']['duration']) + '"'
     sql = 'INSERT INTO TikTok VALUES (' + values + ');'
@@ -164,7 +165,6 @@ def insert_data(cursor, input_file, ids, authors, sounds):
             ids.add(tiktok['id'])
 
 
-
 def go():
     DB_NAME = 'TikToks'
     cursor, connection = connect_to_my_SQL()
@@ -172,9 +172,8 @@ def go():
     create_database(cursor, DB_NAME)  # Creates the database
     cursor.execute("USE {}".format(DB_NAME))
 
-    # set to make sure there's no duplicate ids
-    ids = set()
     # sets the make sure there's no duplicate primary keys in the tables
+    ids = set()
     authors = set()
     sounds = set()
     create_tables(cursor)
