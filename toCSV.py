@@ -31,7 +31,8 @@ def extract_data_into_csv(input_filename, output_filename, ids):
                         tiktok['musicMeta']['musicName'] + ',' + tiktok['musicMeta']['musicAuthor'] + ',' +
                         str(tiktok['musicMeta']['musicOriginal']) + ',' + tiktok['musicMeta']['musicAlbum'] + ',' +
                         str(tiktok['videoMeta']['duration']) + ',' + str(tiktok['diggCount']) + ',' +
-                        str(tiktok['shareCount']) + ',' + str(tiktok['playCount']) + ',' + str(tiktok['commentCount']) + '\n')
+                        str(tiktok['shareCount']) + ',' + str(tiktok['playCount']) + ',' +
+                        str(tiktok['commentCount']) + ',' + str(tiktok['videoUrl']) + '\n')
                     ids.add(tiktok['id'])
                 # keyError is for when one of the fields doesn't exist for a tiktok in the json
                 except KeyError:
@@ -49,7 +50,7 @@ def go():
     # establishes the first line in the csv as the column names (changes the createTime column to date and time)
     write_file.write('id,text,createTime,authorId,authorName,verified,signature,fans,musicId,musicName,'
                      'musicAuthor,musicOriginal,musicAlbum,videoMetaDuration,diggCount,shareCount,playCount,'
-                     'commentCount\n')
+                     'commentCount, videoUrl\n')
     write_file.close()
     # walks through all the files in the TikToks directory and extracts all the data
     for root, dirs, files in os.walk('TikToks'):

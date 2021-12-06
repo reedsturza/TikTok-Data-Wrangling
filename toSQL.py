@@ -91,7 +91,8 @@ def tiktok_table(tiktok, cursor):
              music_id_not_empty(tiktok['musicMeta']['musicId']) + '", "' + \
              str(unix_time_to_datetime(tiktok['createTime'])[0]) + \
              '", "' + str(unix_time_to_datetime(tiktok['createTime'])[1]) + '", "' + \
-             tiktok_str_replace(tiktok['text']) + '", "' + str(tiktok['videoMeta']['duration']) + '"'
+             tiktok_str_replace(tiktok['text']) + '", "' + str(tiktok['videoMeta']['duration']) + '", "' + \
+             str(tiktok['videoUrl']) + '"'
     sql = 'INSERT INTO TikTok VALUES (' + values + ');'
     cursor.execute(sql)
 
@@ -111,21 +112,16 @@ def author_table(tiktok, authors, cursor, f):
 
 # inserts the data into the music table
 def music_table(tiktok, sounds, cursor):
-    # some of the sounds don't have musicAlbum or musicAuthor
-    try:
-        # uses the sounds set to get rid of duplicates
-        if tiktok['musicMeta']['musicId'] not in sounds:
-            values = '"' + tiktok['musicMeta']['musicId'] + '", "' + \
-                     tiktok_str_replace(tiktok['musicMeta']['musicName']) + \
-                     '", "' + tiktok_str_replace(tiktok['musicMeta']['musicAuthor']) + \
-                     '", ' + str(tiktok['musicMeta']['musicOriginal']) + \
-                     ', "' + tiktok_str_replace(tiktok['musicMeta']['musicAlbum']) + '"'
-            sql = 'INSERT INTO Music VALUES (' + values + ');'
-            cursor.execute(sql)
-            sounds.add(tiktok['musicMeta']['musicId'])
-    # keyError is for when one of the fields doesn't exist for a tiktok in the json
-    except KeyError:
-        pass
+    # uses the sounds set to get rid of duplicates
+    if tiktok['musicMeta']['musicId'] not in sounds:
+        values = '"' + tiktok['musicMeta']['musicId'] + '", "' + \
+                tiktok_str_replace(tiktok['musicMeta']['musicName']) + \
+                '", "' + tiktok_str_replace(tiktok['musicMeta']['musicAuthor']) + \
+                '", ' + str(tiktok['musicMeta']['musicOriginal']) + \
+                ', "' + tiktok_str_replace(tiktok['musicMeta']['musicAlbum']) + '"'
+        sql = 'INSERT INTO Music VALUES (' + values + ');'
+        cursor.execute(sql)
+        sounds.add(tiktok['musicMeta']['musicId'])
 
 
 # inserts the data into the tiktok_stats table
@@ -156,22 +152,26 @@ def insert_data(cursor, input_file, ids, authors, sounds):
         for tiktok in data:
             # checks to see if the tiktok is already in the ids set (i.e. the tiktok is already in the csv)
             if tiktok['id'] not in ids:
-                # inserts the data into the TikTok table
-                tiktok_table(tiktok, cursor)
+                try:
+                    # inserts the data into the TikTok table
+                    tiktok_table(tiktok, cursor)
 
-                # insert the data into the author table
-                # uses the authors set to get rid of duplicate authors
-                author_table(tiktok, authors, cursor, f)
+                    # insert the data into the author table
+                    # uses the authors set to get rid of duplicate authors
+                    author_table(tiktok, authors, cursor, f)
 
-                # insert the data into the music table
-                music_table(tiktok, sounds, cursor)
+                    # insert the data into the music table
+                    music_table(tiktok, sounds, cursor)
 
-                # insert data into the tiktok stats data
-                # the primary key is tiktokID so there's already duplication validation
-                tiktok_stats_table(tiktok, cursor)
+                    # insert data into the tiktok stats data
+                    # the primary key is tiktokID so there's already duplication validation
+                    tiktok_stats_table(tiktok, cursor)
 
-                # insert the data into the Hash_Tags data
-                hashtag_table(tiktok, cursor)
+                    # insert the data into the Hash_Tags data
+                    hashtag_table(tiktok, cursor)
+                # keyError is for when one of the fields doesn't exist for a tiktok in the json
+                except KeyError:
+                    pass
 
             ids.add(tiktok['id'])
 
