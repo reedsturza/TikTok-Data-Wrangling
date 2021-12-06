@@ -120,4 +120,4 @@ Headers of the CSV file
 
 
 # SQL
-<img src="/Users/sturzarmoravian.edu/DataWrangling/TikTok-Wrangling/TikTokSchema.png">
+<img src="/Users/sturzarmoravian.edu/DataWrangling/TikTok-Wrangling/TikTokSchema.png"> 
