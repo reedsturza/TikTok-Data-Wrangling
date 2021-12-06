@@ -75,23 +75,34 @@ def music_id_not_empty(musicID):
         return musicID
 
 
+# for the all the string errors that could occur tiktok_str_replace fixes them
+def tiktok_str_replace(str):
+    # remove_emoji removes all the emojis and special characters
+    # removes the \n so there is no new lines in the print statements
+    # removes the double quotes and makes them single quotes so the SQL with have single quotes in the table
+    # I used single quotes instead of double because ' can be used in other ways (ex. don't)
+    # replaces the \\ which is printed as \ to \\\\ which will have a \\ in the sql statement (ex. ':/\' -> ':/\\')
+    return remove_emoji(str.replace('\n', ' ').replace('\"', "'").replace('\\', '\\\\'))
+
+
 # inserts the data into the TikTok table
 def tiktok_table(tiktok, cursor):
     values = '"' + tiktok['id'] + '", "' + tiktok['authorMeta']['id'] + '", "' + \
              music_id_not_empty(tiktok['musicMeta']['musicId']) + '", "' + \
              str(unix_time_to_datetime(tiktok['createTime'])[0]) + \
              '", "' + str(unix_time_to_datetime(tiktok['createTime'])[1]) + '", "' + \
-             remove_emoji(tiktok['text']).replace('\"', "'") + '", "' + str(tiktok['videoMeta']['duration']) + '"'
+             tiktok_str_replace(tiktok['text']) + '", "' + str(tiktok['videoMeta']['duration']) + '"'
     sql = 'INSERT INTO TikTok VALUES (' + values + ');'
     cursor.execute(sql)
 
 
 # inserts the data into the author table
-def author_table(tiktok, authors, cursor):
+def author_table(tiktok, authors, cursor, f):
     if tiktok['authorMeta']['id'] not in authors:
+        # replaces all the errors that could occur
         values = '"' + tiktok['authorMeta']['id'] + '", "' + remove_emoji(tiktok['authorMeta']['name']) + '", ' + \
                  str(tiktok['authorMeta']['verified']) + ', "' + \
-                 remove_emoji(tiktok['authorMeta']['signature'].replace('\n', ' ')).replace('\"', "'") + \
+                 tiktok_str_replace(tiktok['authorMeta']['signature']) + \
                  '", "' + str(tiktok['authorMeta']['fans']) + '"'
         sql = 'INSERT INTO Author VALUES (' + values + ');'
         cursor.execute(sql)
@@ -105,10 +116,10 @@ def music_table(tiktok, sounds, cursor):
         # uses the sounds set to get rid of duplicates
         if tiktok['musicMeta']['musicId'] not in sounds:
             values = '"' + tiktok['musicMeta']['musicId'] + '", "' + \
-                     remove_emoji(tiktok['musicMeta']['musicName']).replace('\"', "'") + \
-                     '", "' + remove_emoji(tiktok['musicMeta']['musicAuthor']).replace('\"', "'") + \
+                     tiktok_str_replace(tiktok['musicMeta']['musicName']) + \
+                     '", "' + tiktok_str_replace(tiktok['musicMeta']['musicAuthor']) + \
                      '", ' + str(tiktok['musicMeta']['musicOriginal']) + \
-                     ', "' + remove_emoji(tiktok['musicMeta']['musicAlbum']).replace('\"', "'") + '"'
+                     ', "' + tiktok_str_replace(tiktok['musicMeta']['musicAlbum']) + '"'
             sql = 'INSERT INTO Music VALUES (' + values + ');'
             cursor.execute(sql)
             sounds.add(tiktok['musicMeta']['musicId'])
@@ -150,7 +161,7 @@ def insert_data(cursor, input_file, ids, authors, sounds):
 
                 # insert the data into the author table
                 # uses the authors set to get rid of duplicate authors
-                author_table(tiktok, authors, cursor)
+                author_table(tiktok, authors, cursor, f)
 
                 # insert the data into the music table
                 music_table(tiktok, sounds, cursor)
