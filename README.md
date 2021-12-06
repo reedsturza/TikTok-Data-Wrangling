@@ -112,11 +112,16 @@ Run the tiktokDownload.py file in a terminal to download tiktoks continuously
         <td>the actual hashtag without the hash (ex. fyp not #fyp)</td>																					
         <td>String</td>   
     </tr>
+    <tr>
+        <td>videoUrl</td>
+        <td>URL to the tiktok</td>																					
+        <td>String</td>   
+    </tr>
 </table>
 
 ## CSV
 Headers of the CSV file
->id,text,createTime,authorId,authorName,verified,signature,fans,musicId,musicName,musicAuthor,musicOriginal,musicAlbum,videoMetaDuration,diggCount,shareCount,playCount,commentCount
+>id,text,createTime,authorId,authorName,verified,signature,fans,musicId,musicName,musicAuthor,musicOriginal,musicAlbum,videoMetaDuration,diggCount,shareCount,playCount,commentCount,videoUrl
 
 
 # SQL
