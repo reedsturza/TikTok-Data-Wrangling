@@ -165,4 +165,7 @@ Headers of the CSV file
     <tr>
         <td>videoMetaDuration</td>
     </tr>
+    <tr>
+        <td>videoUrl</td>
+    </tr>
 </table>
