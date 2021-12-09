@@ -92,7 +92,7 @@ def tiktok_table(tiktok, cursor):
              str(unix_time_to_datetime(tiktok['createTime'])[0]) + \
              '", "' + str(unix_time_to_datetime(tiktok['createTime'])[1]) + '", "' + \
              tiktok_str_replace(tiktok['text']) + '", "' + str(tiktok['videoMeta']['duration']) + '", "' + \
-             str(tiktok['videoUrl']) + '"'
+             remove_emoji(str(tiktok['webVideoUrl'])) + '"'
     sql = 'INSERT INTO TikTok VALUES (' + values + ');'
     cursor.execute(sql)
 
