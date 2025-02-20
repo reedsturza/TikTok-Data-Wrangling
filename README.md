@@ -1,4 +1,6 @@
 # TikTok-Wrangling
+This program downloads individual tiktok videos data and converts the data into the SQL database using python.
+
 Tiktok scraper used for this project
 https://github.com/drawrowfly/tiktok-scraper/blob/master/README.md
 
